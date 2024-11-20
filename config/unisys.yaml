@@ -1,0 +1,10 @@
+log:
+  maxLogFileSize: 100
+  maxLogFileBackup: 10
+  maxLogFileAge: 90
+  compressBackupLogFile: true
+
+server:
+  port: 8443
+  tlsCertificateFile: auth/server.crt
+  tlsPrivateKeyFile: auth/server.key
