@@ -21,6 +21,7 @@ package logger
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/hoon-kr/unisys/config"
@@ -51,6 +52,8 @@ var Log Logger = &SyncLogger{}
 
 // InitializeLogger 로거 초기화
 func (s *SyncLogger) InitializeLogger() {
+	var cores []zapcore.Core
+
 	// Lumberjack 생성 (자동으로 로그 파일 관리)
 	s.fileLogger = s.newLumberJackLogger(config.LogFilePath)
 
@@ -73,13 +76,27 @@ func (s *SyncLogger) InitializeLogger() {
 	// 콘솔 인코더 생성
 	consoleEncoder := zapcore.NewConsoleEncoder(encoderConfig)
 
-	// 로그 출력을 위한 코어 설정
-	consoleWriter := zapcore.AddSync(s.fileLogger)
+	// 파일 로그 출력을 위한 코어 설정
+	fileWriter := zapcore.AddSync(s.fileLogger)
+	// 파일 로그 코어 추가
+	cores = append(cores, zapcore.NewCore(consoleEncoder, fileWriter, zapcore.DebugLevel))
+
+	// 디버그 모드일 경우 로그를 콘솔로도 출력
+	if config.RunConf.DebugMode {
+		stdoutLevel := zap.LevelEnablerFunc(func(level zapcore.Level) bool {
+			return level < zapcore.ErrorLevel
+		})
+		stderrLevel := zap.LevelEnablerFunc(func(level zapcore.Level) bool {
+			return level >= zapcore.ErrorLevel
+		})
+		consoleOut := zapcore.AddSync(os.Stdout)
+		consoleErr := zapcore.AddSync(os.Stderr)
+		cores = append(cores, zapcore.NewCore(consoleEncoder, consoleOut, stdoutLevel))
+		cores = append(cores, zapcore.NewCore(consoleEncoder, consoleErr, stderrLevel))
+	}
 
 	// 코어 생성
-	core := zapcore.NewTee(
-		zapcore.NewCore(consoleEncoder, consoleWriter, zapcore.InfoLevel),
-	)
+	core := zapcore.NewTee(cores...)
 
 	// 코어로 부터 로거 생성
 	s.zapLogger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1),
