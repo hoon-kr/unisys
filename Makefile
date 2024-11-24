@@ -9,7 +9,8 @@ define go_build
 	mkdir -p ${BIN_DIR}/${CONF_DIR}
 	go build -o ${BIN_DIR}/${MODULE_NAME} -ldflags "-X 'config.BuildTime=${BUILD_TIME}'"
 	cp -f config/${CONF_FILE} ${BIN_DIR}/${CONF_DIR}/${CONF_FILE}
-	cp -rf ${AUTH_DIR} ${BIN_DIR}
+	# TLS 인증서 디렉터리 복사 (테스트용)
+	# cp -rf ${AUTH_DIR} ${BIN_DIR}
 endef
 
 all: init build

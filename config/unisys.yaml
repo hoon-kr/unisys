@@ -1,10 +1,33 @@
-log:
-  maxLogFileSize: 100
-  maxLogFileBackup: 10
-  maxLogFileAge: 90
-  compressBackupLogFile: true
-
 server:
+  # Listen port (DEF:8443)
+  # Ignore this port number if autoTLS is enabled (listen 443)
   port: 8443
+  # Shutdown timedout (DEF:5sec, MIN:1sec, MAX:20sec)
+  shutdownTimeout: 5
+  # TLS enable settings (DEF:false)
+  tlsEnabled: false
+  # TLS certificate file path
   tlsCertificateFile: auth/server.crt
+  # TLS private key file path
   tlsPrivateKeyFile: auth/server.key
+  autoTLS:
+    # Automatically install TLS certificates from Let's Encrypt (DEF:false)
+    enabled: false
+    # Path for storing TLS certificates (DEF:.cache)
+    certPath: .cache
+    # which domains the Let's Encrypt will attempt
+    host:
+
+api:
+  metricURI: /metrics
+  healthURI: /health
+
+log:
+  # Max log file size (DEF:100MB, MIN:1MB, MAX:1000MB)
+  maxLogFileSize: 100
+  # Max log file backup number (DEF:10, MIN:1, MAX:100)
+  maxLogFileBackup: 10
+  # Max log file age (DEF:90, MIN:1, MAX:365)
+  maxLogFileAge: 90
+  # Compress backup log file (DEF:true)
+  compressBackupLogFile: true

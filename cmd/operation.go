@@ -19,6 +19,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"os/signal"
 	"syscall"
 	"time"
 
@@ -41,7 +42,7 @@ type unisysOperation struct{}
 //
 // Returns:
 //   - error: 정상 종료(nil), 비정상 종료(error)
-func (l *unisysOperation) start(cmd *cobra.Command) error {
+func (u *unisysOperation) start(cmd *cobra.Command) error {
 	// 작업 경로를 현재 프로세스가 위치한 경로로 변경
 	err := file.ChangeWorkPathToModulePath()
 	if err != nil {
@@ -83,14 +84,17 @@ func (l *unisysOperation) start(cmd *cobra.Command) error {
 
 	// 시그널 설정
 	sigChan := SetupSignal()
+	defer signal.Stop(sigChan)
 
 	// 고루틴 관리 구조체 생성
 	gm := goroutine.NewGoroutineManager()
+	// 패닉 핸들러 설정
+	gm.PanicHandler = u.panicHandler
 
 	// 초기화
-	l.initialization(gm)
+	u.initialization(gm)
 	// 종료 시 자원 정리
-	defer l.finalization(gm)
+	defer u.finalization(gm)
 
 	logger.Log.LogInfo("start %s (pid:%d, mode:%s)", config.ModuleName, config.RunConf.Pid,
 		func() string {
@@ -105,7 +109,7 @@ func (l *unisysOperation) start(cmd *cobra.Command) error {
 
 	// 종료 시그널 대기 (SIGINT, SIGTERM, SIGUSR1)
 	sig := <-sigChan
-	logger.Log.LogInfo("received %s signal (%d)", sig.String(), sig)
+	logger.Log.LogInfo("received %s (signum:%d)", sig.String(), sig)
 
 	return nil
 }
@@ -117,7 +121,7 @@ func (l *unisysOperation) start(cmd *cobra.Command) error {
 //
 // Returns:
 //   - error: 정상 종료(nil), 비정상 종료(error)
-func (l *unisysOperation) stop(cmd *cobra.Command) error {
+func (u *unisysOperation) stop(cmd *cobra.Command) error {
 	// 작업 경로를 현재 프로세스가 위치한 경로로 변경
 	err := file.ChangeWorkPathToModulePath()
 	if err != nil {
@@ -141,7 +145,10 @@ func (l *unisysOperation) stop(cmd *cobra.Command) error {
 }
 
 // initialization 초기화
-func (l *unisysOperation) initialization(gm *goroutine.GoroutineManager) {
+//
+// Parameters:
+//   - gm: 고루틴 동작 관리 구조체
+func (u *unisysOperation) initialization(gm *goroutine.GoroutineManager) {
 	// 설정 파일 로드
 	config.Conf.LoadConfig(config.ConfFilePath)
 	// 로거 초기화
@@ -153,7 +160,10 @@ func (l *unisysOperation) initialization(gm *goroutine.GoroutineManager) {
 }
 
 // finalization 종료 시 자원 정리
-func (l *unisysOperation) finalization(gm *goroutine.GoroutineManager) {
+//
+// Parameters:
+//   - gm: 고루틴 동작 관리 구조체
+func (u *unisysOperation) finalization(gm *goroutine.GoroutineManager) {
 	// 작업에 등록된 모든 고루틴 종료
 	gm.StopAll(10 * time.Second)
 
@@ -182,4 +192,13 @@ var stopCmd = &cobra.Command{
 	Use:   "stop",
 	Short: "Stop unisys",
 	RunE:  WrapCommandFuncForCobra(unisysOper.stop),
+}
+
+// panicHandler 패닉 핸들러
+//
+// Parameters:
+//   - panicErr: 패닉 에러
+func (u *unisysOperation) panicHandler(panicErr interface{}) {
+	logger.Log.LogError("panic occurred: %v", panicErr)
+	process.SendSignal(config.RunConf.Pid, syscall.SIGUSR1)
 }

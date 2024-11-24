@@ -22,12 +22,17 @@ package goroutine
 import (
 	"context"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 )
 
+// PanicHandleFunc 패닉 핸들러 함수 타입 정의
+type PanicHandleFunc func(interface{})
+
 // GoroutineManager 전체 고루틴 관리 정보 구조체
 type GoroutineManager struct {
+	PanicHandler PanicHandleFunc
 	mu           sync.Mutex
 	parentWG     sync.WaitGroup
 	parentCtx    context.Context
@@ -108,17 +113,21 @@ func (gm *GoroutineManager) StartAll() {
 	for _, t := range gm.tasks {
 		gm.parentWG.Add(1)
 		t.childWG.Add(1)
-		// 포인터를 인자 값으로 넘겨주지만, 해당 주소값은 캡쳐되어
-		// go 익명 함수 내부에서 바뀌지 않음
+		tmpTask := t
 		go func(tw *taskWrapper) {
 			defer func() {
+				if err := recover(); err != nil {
+					if gm.PanicHandler != nil {
+						gm.PanicHandler(err)
+					}
+				}
 				tw.childWG.Done()
 				gm.parentWG.Done()
 			}()
 
 			// 작업 가동
 			tw.task(tw.childCtx)
-		}(t)
+		}(tmpTask)
 	}
 }
 
@@ -162,6 +171,11 @@ func (gm *GoroutineManager) Start(name string) error {
 	t.childWG.Add(1)
 	go func() {
 		defer func() {
+			if err := recover(); err != nil {
+				if gm.PanicHandler != nil {
+					gm.PanicHandler(err)
+				}
+			}
 			t.childWG.Done()
 			gm.parentWG.Done()
 		}()
@@ -193,4 +207,12 @@ func (gm *GoroutineManager) Stop(name string, timeout time.Duration) error {
 		}
 	}
 	return nil
+}
+
+// DefaultPanicHandler 기본 패닉 핸들러 함수
+//
+// Parameters:
+//   - panicErr: 패닉 에러
+func DefaultPanicHandler(panicErr interface{}) {
+	fmt.Fprintf(os.Stderr, "panic occurred: %v\n", panicErr)
 }
