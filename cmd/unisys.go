@@ -27,17 +27,28 @@ import (
 	"strconv"
 	"syscall"
 
-	"github.com/hoon-kr/unisys/config"
-	"github.com/hoon-kr/unisys/pkg/util/process"
+	"github.com/meloncoffee/unisys/config"
+	"github.com/meloncoffee/unisys/pkg/util/process"
 	"github.com/spf13/cobra"
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
 // unisysCmd 최상위 루트 명령어
 var unisysCmd = &cobra.Command{
-	Use:     "unisys",
-	Short:   "",
-	Long:    "",
+	Use:   "unisys",
+	Short: "unisys is an unified server management system",
+	Long: "\033[1;34m" + `
+             .__                      
+ __ __  ____ |__| _________.__. ______
+|  |  \/    \|  |/  ___<   |  |/  ___/
+|  |  /   |  \  |\___ \ \___  |\___ \ 
+|____/|___|  /__/____  >/ ____/____  >
+           \/        \/ \/         \/ 
+` + "\033[0m" + `
+unisys is an unified server management system.
+Communicate through RestAPI.
+Provides encrypted communication.
+===========================================================`,
 	Version: config.Version,
 }
 

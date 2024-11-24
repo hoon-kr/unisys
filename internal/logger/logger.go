@@ -24,7 +24,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/hoon-kr/unisys/config"
+	"github.com/meloncoffee/unisys/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"

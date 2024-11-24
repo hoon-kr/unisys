@@ -28,9 +28,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hoon-kr/unisys/config"
-	"github.com/hoon-kr/unisys/internal/logger"
-	"github.com/hoon-kr/unisys/pkg/util/process"
+	"github.com/meloncoffee/unisys/config"
+	"github.com/meloncoffee/unisys/internal/logger"
+	"github.com/meloncoffee/unisys/pkg/util/process"
 	"golang.org/x/crypto/acme/autocert"
 )
 
@@ -177,11 +177,14 @@ func (s *Server) newGinRouterEngine() *gin.Engine {
 	r.Use(s.ginLoggerMiddleware())
 	// 복구 미들웨어 등록
 	r.Use(gin.Recovery())
+	// 버전 정보 미들웨어 등록
+	r.Use(s.versionMiddleware())
 
 	// 요청 핸들러 등록
-	// TODO: 구현 필요
-	// r.GET(config.Conf.API.MetricURI, metricsHandler)
+	r.GET(config.Conf.API.MetricURI, metricsHandler)
 	r.GET(config.Conf.API.HealthURI, healthHandler)
+	r.GET("/version", versionHandler)
+	r.GET("/", rootHandler)
 
 	return r
 }
@@ -248,5 +251,16 @@ func (s *Server) ginLoggerMiddleware() gin.HandlerFunc {
 			logger.Log.LogInfo("[%d] %s %s (IP: %s, Latency: %v, UA: %s, ResSize: %d) %s",
 				statusCode, method, path, clientIP, latency, userAgent, resBodySize, logMsg)
 		}
+	}
+}
+
+// versionMiddleware 버전 정보 미들웨어
+//
+// Returns:
+//   - gin.HandlerFunc: 버전 정보 핸들러
+func (s *Server) versionMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("X-UNISYS-VERSION", config.Version)
+		c.Next()
 	}
 }

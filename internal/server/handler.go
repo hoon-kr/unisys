@@ -20,6 +20,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/meloncoffee/unisys/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -37,4 +38,25 @@ func metricsHandler(c *gin.Context) {
 //   - c: HTTP 요청 및 응답과 관련된 정보를 포함하는 객체
 func healthHandler(c *gin.Context) {
 	c.AbortWithStatus(http.StatusOK)
+}
+
+// versionHandler 버전 정보 핸들러
+//
+// Parameters:
+//   - c: HTTP 요청 및 응답과 관련된 정보를 포함하는 객체
+func versionHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"source":  "https://github.com/meloncoffee/unisys",
+		"version": config.Version,
+	})
+}
+
+// rootHandler 버전 정보 핸들러
+//
+// Parameters:
+//   - c: HTTP 요청 및 응답과 관련된 정보를 포함하는 객체
+func rootHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"text": "Welcome to unisys.",
+	})
 }

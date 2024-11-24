@@ -18,7 +18,7 @@ all: init build
 init:
 	@if [ ! -f go.mod ]; then \
 		echo "Initialize Go Module..."; \
-		go mod init github.com/hoon-kr/${MODULE_NAME}; \
+		go mod init github.com/meloncoffee/${MODULE_NAME}; \
 		go mod tidy; \
 	fi
 	

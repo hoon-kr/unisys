@@ -23,12 +23,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/hoon-kr/unisys/config"
-	"github.com/hoon-kr/unisys/internal/logger"
-	"github.com/hoon-kr/unisys/internal/server"
-	"github.com/hoon-kr/unisys/pkg/util/file"
-	"github.com/hoon-kr/unisys/pkg/util/goroutine"
-	"github.com/hoon-kr/unisys/pkg/util/process"
+	"github.com/meloncoffee/unisys/config"
+	"github.com/meloncoffee/unisys/internal/logger"
+	"github.com/meloncoffee/unisys/internal/server"
+	"github.com/meloncoffee/unisys/pkg/util/file"
+	"github.com/meloncoffee/unisys/pkg/util/goroutine"
+	"github.com/meloncoffee/unisys/pkg/util/process"
 	"github.com/spf13/cobra"
 )
 
@@ -38,7 +38,7 @@ type unisysOperation struct{}
 // start unisys 모듈 가동
 //
 // Parameters:
-//   - cmd: 명령어 정보
+//   - cmd: cobra 명령어 정보 구조체
 //
 // Returns:
 //   - error: 정상 종료(nil), 비정상 종료(error)
@@ -117,7 +117,7 @@ func (u *unisysOperation) start(cmd *cobra.Command) error {
 // stop unisys 모듈 정지
 //
 // Parameters:
-//   - cmd: 명령어 정보
+//   - cmd: cobra 명령어 정보 구조체
 //
 // Returns:
 //   - error: 정상 종료(nil), 비정상 종료(error)

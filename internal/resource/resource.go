@@ -15,14 +15,8 @@
 //go:build linux
 
 /*
-Package main 모듈 시작 패키지
+Package resource 리소스 수집 패키지
 */
-package main
+package resource
 
-import "github.com/meloncoffee/unisys/cmd"
-
-// main 모듈 메인 함수
-func main() {
-	// 명령 실행
-	cmd.Execute()
-}
+type ResourceCollecter struct{}
