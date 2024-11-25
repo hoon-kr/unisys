@@ -34,10 +34,14 @@ import (
 	"github.com/meloncoffee/unisys/internal/metric"
 	"github.com/meloncoffee/unisys/pkg/util/process"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/thoas/stats"
 	"golang.org/x/crypto/acme/autocert"
 )
 
 var doOnce sync.Once
+
+// 서버 응답 시간 및 상태 코드 카운트
+var servStats *stats.Stats
 
 // Server 메인 서버 정보 구조체
 type Server struct{}
@@ -170,6 +174,8 @@ func (s *Server) Run(ctx context.Context) {
 func (s *Server) newGinRouterEngine() *gin.Engine {
 	// 런타임 중 한번만 호출됨
 	doOnce.Do(func() {
+		// Stats 구조체 생성
+		servStats = stats.New()
 		// Prometheus 메트릭 등록
 		m := metric.NewMetrics()
 		prometheus.MustRegister(m)
@@ -185,16 +191,20 @@ func (s *Server) newGinRouterEngine() *gin.Engine {
 
 	// gin 라우터 생성
 	r := gin.New()
-	// 요청/응답 정보 로깅 미들웨어 등록
-	r.Use(s.ginLoggerMiddleware())
+
 	// 복구 미들웨어 등록
 	r.Use(gin.Recovery())
+	// 요청/응답 정보 로깅 미들웨어 등록
+	r.Use(s.ginLoggerMiddleware())
 	// 버전 정보 미들웨어 등록
 	r.Use(s.versionMiddleware())
+	// 요청 통계를 수집하고 기록하는 미들웨어 등록
+	r.Use(s.statMiddleware())
 
 	// 요청 핸들러 등록
 	r.GET(config.Conf.API.MetricURI, metricsHandler)
 	r.GET(config.Conf.API.HealthURI, healthHandler)
+	r.GET(config.Conf.API.SysStatURI, sysStatsHandler)
 	r.GET("/version", versionHandler)
 	r.GET("/", rootHandler)
 
@@ -204,7 +214,7 @@ func (s *Server) newGinRouterEngine() *gin.Engine {
 // ginLoggerMiddleware gin 요청/응답 정보 로깅 미들웨어
 //
 // Returns:
-//   - gin.HandlerFunc: gin 로거 핸들러
+//   - gin.HandlerFunc: gin 미들웨어
 func (s *Server) ginLoggerMiddleware() gin.HandlerFunc {
 	// 로깅에서 제외할 경로 설정
 	excludePath := map[string]struct{}{
@@ -269,10 +279,22 @@ func (s *Server) ginLoggerMiddleware() gin.HandlerFunc {
 // versionMiddleware 버전 정보 미들웨어
 //
 // Returns:
-//   - gin.HandlerFunc: 버전 정보 핸들러
+//   - gin.HandlerFunc: gin 미들웨어
 func (s *Server) versionMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("X-UNISYS-VERSION", config.Version)
 		c.Next()
+	}
+}
+
+// statMiddleware 요청 통계를 수집하고 기록하는 미들웨어
+//
+// Returns:
+//   - gin.HandlerFunc: gin 미들웨어
+func (s *Server) statMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		beginning, recorder := servStats.Begin(c.Writer)
+		c.Next()
+		servStats.End(beginning, stats.WithRecorder(recorder))
 	}
 }

@@ -24,7 +24,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-// metricsHandler 헬스 체크 핸들러
+// metricsHandler prometheus 메트릭 제공 핸들러
 //
 // Parameters:
 //   - c: HTTP 요청 및 응답과 관련된 정보를 포함하는 객체
@@ -51,7 +51,7 @@ func versionHandler(c *gin.Context) {
 	})
 }
 
-// rootHandler 버전 정보 핸들러
+// rootHandler 루트 경로 핸들러
 //
 // Parameters:
 //   - c: HTTP 요청 및 응답과 관련된 정보를 포함하는 객체
@@ -59,4 +59,12 @@ func rootHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"text": "Welcome to unisys.",
 	})
+}
+
+// sysStatsHandler 서버 상태 정보 핸들러
+//
+// Parameters:
+//   - c: HTTP 요청 및 응답과 관련된 정보를 포함하는 객체
+func sysStatsHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, servStats.Data())
 }

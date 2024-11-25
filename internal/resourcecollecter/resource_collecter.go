@@ -24,7 +24,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/meloncoffee/unisys/config"
 	"github.com/meloncoffee/unisys/internal/logger"
 	"github.com/meloncoffee/unisys/pkg/util/goroutine"
 	"github.com/meloncoffee/unisys/pkg/util/resource"
@@ -141,15 +140,15 @@ func (rc *ResourceCollecter) CollectResource(ctx context.Context) {
 		// 글로벌 리소스 구조체에 정보 업데이트
 		SetGlobalResource(&res)
 
-		if config.RunConf.DebugMode {
-			logger.Log.LogDebug("CPU Usage Rate: %.2f%%", res.CPUUsageRate)
-			logger.Log.LogDebug("Memory Usage Rate: %.2f%%", res.MemUsageRate)
-			logger.Log.LogDebug("Disk Usage Rate: %.2f%%", res.DiskUsageRate)
-			for _, traffic := range res.NetworkTraffic {
-				logger.Log.LogDebug("Network Traffic - Interface: %s, InboundBps: %.2fbps, OutboundBps: %.2fbps",
-					traffic.Interface, traffic.InboundBps, traffic.OutboundBps)
-			}
-		}
+		// if config.RunConf.DebugMode {
+		// 	logger.Log.LogDebug("CPU Usage Rate: %.2f%%", res.CPUUsageRate)
+		// 	logger.Log.LogDebug("Memory Usage Rate: %.2f%%", res.MemUsageRate)
+		// 	logger.Log.LogDebug("Disk Usage Rate: %.2f%%", res.DiskUsageRate)
+		// 	for _, traffic := range res.NetworkTraffic {
+		// 		logger.Log.LogDebug("Network Traffic - Interface: %s, InboundBps: %.2fbps, OutboundBps: %.2fbps",
+		// 			traffic.Interface, traffic.InboundBps, traffic.OutboundBps)
+		// 	}
+		// }
 	}
 }
 

@@ -62,6 +62,8 @@ type Config struct {
 		MetricURI string `yaml:"metricURI"`
 		// 애플리케이션 상태 점검을 위한 엔드포인트 (DEF: /health)
 		HealthURI string `yaml:"healthURI"`
+		// 서버 상태 정보를 제공하는 엔드포인트 (DEF: /sys/stats)
+		SysStatURI string `yaml:"sysStatURI"`
 	} `yaml:"api"`
 
 	// 로그 설정
@@ -108,6 +110,7 @@ func init() {
 	Conf.Server.AutoTLS.Host = ""
 	Conf.API.MetricURI = "/metrics"
 	Conf.API.HealthURI = "/health"
+	Conf.API.SysStatURI = "/sys/stats"
 	Conf.Log.MaxLogFileSize = 100
 	Conf.Log.MaxLogFileBackup = 10
 	Conf.Log.MaxLogFileAge = 90

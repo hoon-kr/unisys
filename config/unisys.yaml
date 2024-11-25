@@ -21,6 +21,7 @@ server:
 api:
   metricURI: /metrics
   healthURI: /health
+  sysStatURI: /sys/stats
 
 log:
   # Max log file size (DEF:100MB, MIN:1MB, MAX:1000MB)
