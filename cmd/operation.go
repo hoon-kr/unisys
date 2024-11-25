@@ -25,6 +25,7 @@ import (
 
 	"github.com/meloncoffee/unisys/config"
 	"github.com/meloncoffee/unisys/internal/logger"
+	"github.com/meloncoffee/unisys/internal/resourcecollecter"
 	"github.com/meloncoffee/unisys/internal/server"
 	"github.com/meloncoffee/unisys/pkg/util/file"
 	"github.com/meloncoffee/unisys/pkg/util/goroutine"
@@ -157,6 +158,9 @@ func (u *unisysOperation) initialization(gm *goroutine.GoroutineManager) {
 	// 메인 서버를 고루틴 작업에 등록
 	var server server.Server
 	gm.AddTask("server", server.Run)
+	// 리소스 콜렉터를 고루틴 작업에 등록
+	var rc resourcecollecter.ResourceCollecter
+	gm.AddTask("resourcecollecter", rc.CollectResource)
 }
 
 // finalization 종료 시 자원 정리

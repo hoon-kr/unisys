@@ -24,15 +24,20 @@ import (
 	"crypto/tls"
 	"net/http"
 	"strconv"
+	"sync"
 	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/meloncoffee/unisys/config"
 	"github.com/meloncoffee/unisys/internal/logger"
+	"github.com/meloncoffee/unisys/internal/metric"
 	"github.com/meloncoffee/unisys/pkg/util/process"
+	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/crypto/acme/autocert"
 )
+
+var doOnce sync.Once
 
 // Server 메인 서버 정보 구조체
 type Server struct{}
@@ -163,6 +168,13 @@ func (s *Server) Run(ctx context.Context) {
 // Returns:
 //   - *gin.Engine: gin 엔진
 func (s *Server) newGinRouterEngine() *gin.Engine {
+	// 런타임 중 한번만 호출됨
+	doOnce.Do(func() {
+		// Prometheus 메트릭 등록
+		m := metric.NewMetrics()
+		prometheus.MustRegister(m)
+	})
+
 	// gin 모드 설정
 	gin.SetMode(func() string {
 		if config.RunConf.DebugMode {
